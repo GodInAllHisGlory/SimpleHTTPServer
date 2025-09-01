@@ -12,8 +12,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if not data:
                 connection.close()
                 continue
-
+            print(f"Data: {data}")
             #TODO: parse the request, send through middleware and encode the response
             res = "HTTP/1.1 200 Ok\nConnection: close\n\n<h1>Hello, world!</h1>"
-
             connection.send(bytes(res, "UTF-8"))
+
+def requset_parse_factory(next):
+    def requset_parse(req): 
+        req_split = req.split()
+        verb = req_split[0]
+        uri = req_split[1]
+        version = req_split[2]
+        
+
+    return requset_parse
