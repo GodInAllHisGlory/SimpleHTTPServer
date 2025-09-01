@@ -1,5 +1,14 @@
 import socket
 from request import Request
+from response import Response
+from endpoints import index
+
+# endpoint_dict = {
+#     "/":index,
+#     "index":index,
+#     "/info":about,
+#     "/about":about
+# }
 
 #Logs important request and response information
 def logging_factory(next):
@@ -27,6 +36,7 @@ def decoder(data):
     for header in request_parts:
         header_parts = header.split(": ")
         headers[header_parts[0]] = header_parts[1]
+        print(header)
     request = Request(
         request_line[0],
         request_line[1],
@@ -41,12 +51,7 @@ def encoder():
     return response
 
 def router(req):
-    uri = req.uri
-    
-            
-
-
-
+    response = endpoint_dict[req.uri]
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind(("127.0.0.1", 8000))
