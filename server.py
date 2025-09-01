@@ -1,21 +1,21 @@
 import socket
 from request import Request
 from response import Response
-from endpoints import index
+from endpoints import index, about
 
-# endpoint_dict = {
-#     "/":index,
-#     "index":index,
-#     "/info":about,
-#     "/about":about
-# }
+endpoint_dict = {
+    "/":index,
+    "index":index,
+    "/info":about,
+    "/about":about
+}
 
 #Logs important request and response information
 def logging_factory(next):
     def logging(protocol): 
         print(protocol.method)
         print(protocol.uri)
-        return next(protocol.uri)
+        return next(protocol)
         
     return logging
 
@@ -36,7 +36,6 @@ def decoder(data):
     for header in request_parts:
         header_parts = header.split(": ")
         headers[header_parts[0]] = header_parts[1]
-        print(header)
     request = Request(
         request_line[0],
         request_line[1],
@@ -46,17 +45,26 @@ def decoder(data):
     )
     return request
 
-def encoder():
-    response = Response()
+def encoder(res):
+    headers = res.headers
+    response = f"{res.version} {res.code} {res.reason}"
+    for header in headers.keys():
+        response += f"\n {header}: {headers[header]}"
+    response += "\n\n"
+    response += res.body
     return response
 
 def router(req):
-    response = endpoint_dict[req.uri]
+    try:
+        response = endpoint_dict[req.uri](req)
+    except KeyError:
+        response = None
+    return response
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind(("127.0.0.1", 8000))
+    s.bind(("127.0.0.1", 8001))
     s.listen()
-    print("listening on port 8000")
+    print("listening on port 8001")
 
     while True:
         connection, addr = s.accept()
@@ -67,7 +75,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 continue
             #TODO: parse the request, send through middleware and encode the response
             request = decoder(data)
-            # middleware_chain = logging_factory()
-            res = "HTTP/1.1 200 Ok\nConnection: close\n\n<h1>Hello, world!</h1>"
+            middleware_chain = logging_factory(router)
+            res = middleware_chain(request) #Returns a response object
+            res = encoder(res)
+            # res = "HTTP/1.1 200 Ok\nConnection: close\n\n<h1>Hello, world!</h1>"
             connection.send(bytes(res, "UTF-8"))
 
