@@ -1,24 +1,33 @@
 from response import Response
-from datetime import datetime
 
-def index(req):
+def index(headers):
     response_body = open("template/index.html").read()
-    return Response(req.version, 200, "Ok", create_headers(response_body), response_body)
+    headers = set_length(headers,response_body)
+    headers = set_mime_type(headers)
+    return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
-def about(req):
-    response_body = open("template/index.html").read()
-    return Response(req.version, 200, "Ok", create_headers(response_body), response_body)
+def about(headers):
+    response_body = open("template/about.html").read()
+    headers = set_length(headers, response_body)
+    headers = set_mime_type(headers)
+    return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
-def create_headers(body):
-    headers = {
-        "Content-Type": "text/html",
-        "Content-Length": get_length(body),
-        "Connection": "close",
-        "Cache-Control": "no-cache",
-        "Server": "Really cool server",
-        "Date": datetime.now().strftime("%c")
-    }
+def info(headers):
+    msg = "Redirecting..."
+    headers["Location"] = "/about"
+    return Response("HTTP/1.1", 301, "Moved Permanently", headers, msg)
+
+def not_found(headers):
+    response_body = "404 File Not Found :("
+    return Response("HTTP/1.1", 404, "Not Found", headers, response_body)
+
+# def static(headers, body):
+#     return Response("HTTP/1.1", 200, "Ok", headers, body)
+
+def set_length(headers, body):
+    headers["Content-Length"] = len(body)
     return headers
 
-def get_length(body):
-    return len(body)
+def set_mime_type(headers):
+    headers["Content-Type"] = "text/html"
+    return headers

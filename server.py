@@ -1,31 +1,67 @@
 import socket
+from datetime import datetime
 from request import Request
 from response import Response
-from endpoints import index, about
+from endpoints import index, about, info, not_found
 
 endpoint_dict = {
     "/":index,
     "index":index,
-    "/info":about,
+    "/info":info,
     "/about":about
 }
 
 #Logs important request and response information
 def logging_factory(next):
     def logging(protocol): 
-        print(protocol.method)
-        print(protocol.uri)
+        if isinstance(protocol, Request): 
+            print(protocol.method)
+            print(protocol.uri)
+        else:
+            print(protocol.code)
+            print(protocol.reason)
         return next(protocol)
         
     return logging
 
+def create_headers_factory(next):
+    def create_headers(req):
+        headers = {
+        "Connection": "close",
+        "Cache-Control": "max-age=20",
+        "Server": "Really Cool Server",
+        "Date": datetime.now().strftime('%c')
+    }
+        return next(req, headers)
+    return create_headers
+
+
 def get_static_file_factory(next):
-    def get_static_file(uri):
-        
-        return next(file)
-    
+    def get_static_file(req, headers):
+        uri = req.uri
+        if "." in uri:
+            try:
+                headers = static_response_helper(headers, uri)
+                file = open(f"static/{uri}").read()
+                return Response("HTTP/1.1", 200, "Ok", headers, file)
+            except FileNotFoundError:
+                return next(req, headers)
+            
+        return next(req, headers)
     return get_static_file
 
+def static_response_helper(header, uri):
+    static_type = uri.split(".")[1] #Gets the file type
+    if static_type == "css":
+        content = "text/css"
+    elif static_type == "js":
+        content = "text/javascript"
+    else:
+        content = None
+    header["Content-Type"] = content
+    return header
+
+#Turns a http request object into a more manageable request object
 def decoder(data):
     request_parts = data.decode("UTF-8").split("\n")
     request_line = request_parts.pop(0).split()
@@ -36,6 +72,7 @@ def decoder(data):
     for header in request_parts:
         header_parts = header.split(": ")
         headers[header_parts[0]] = header_parts[1]
+
     request = Request(
         request_line[0],
         request_line[1],
@@ -45,26 +82,29 @@ def decoder(data):
     )
     return request
 
+#Turns a response object into a proper http response
 def encoder(res):
     headers = res.headers
     response = f"{res.version} {res.code} {res.reason}"
+
     for header in headers.keys():
-        response += f"\n {header}: {headers[header]}"
+        response += f"\n{header}: {headers[header]}"
     response += "\n\n"
     response += res.body
+
     return response
 
-def router(req):
+def router(req, headers):
     try:
-        response = endpoint_dict[req.uri](req)
+        response = endpoint_dict[req.uri](headers) #Access a dict that holds the proper endpoint info
     except KeyError:
-        response = None
+        response = not_found(headers)
     return response
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind(("127.0.0.1", 8001))
+    s.bind(("127.0.0.1", 8000))
     s.listen()
-    print("listening on port 8001")
+    print("listening on port 8000")
 
     while True:
         connection, addr = s.accept()
@@ -73,11 +113,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if not data:
                 connection.close()
                 continue
-            #TODO: parse the request, send through middleware and encode the response
-            request = decoder(data)
-            middleware_chain = logging_factory(router)
-            res = middleware_chain(request) #Returns a response object
-            res = encoder(res)
-            # res = "HTTP/1.1 200 Ok\nConnection: close\n\n<h1>Hello, world!</h1>"
+
+            request = decoder(data) 
+            response_chain = get_static_file_factory(router)
+            response_chain = create_headers_factory(response_chain)
+            response_chain = logging_factory(response_chain)
+            res = response_chain(request) #Returns a response object
+            
+            log_chain = logging_factory(encoder)
+            res = log_chain(res)
             connection.send(bytes(res, "UTF-8"))
 
