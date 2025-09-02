@@ -3,13 +3,11 @@ from response import Response
 def index(headers):
     response_body = open("template/index.html").read()
     headers = set_length(headers,response_body)
-    headers = set_mime_type(headers)
     return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
 def about(headers):
     response_body = open("template/about.html").read()
     headers = set_length(headers, response_body)
-    headers = set_mime_type(headers)
     return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
 def info(headers):
@@ -20,13 +18,11 @@ def info(headers):
 def experience(headers):
     response_body = open("template/experience.html").read()
     headers = set_length(headers,response_body)
-    headers = set_mime_type(headers)
     return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
 def projects(headers):
     response_body = open("template/projects.html").read()
     headers = set_length(headers,response_body)
-    headers = set_mime_type(headers)
     return Response("HTTP/1.1", 200, "Ok", headers, response_body)
 
 def not_found(headers):
@@ -35,8 +31,4 @@ def not_found(headers):
 
 def set_length(headers, body):
     headers["Content-Length"] = len(body)
-    return headers
-
-def set_mime_type(headers):
-    headers["Content-Type"] = "text/html"
     return headers

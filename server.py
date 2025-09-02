@@ -33,12 +33,13 @@ def create_headers_factory(next):
         "Connection": "close",
         "Cache-Control": "max-age=20",
         "Server": "Really Cool Server",
+        "Content-Type":"text/html",
         "Date": datetime.now().strftime('%c')
     }
         return next(req, headers)
     return create_headers
 
-#Gets files that are spefically requested
+#Gets files that are specifically requested
 def get_static_file_factory(next):
     def get_static_file(req, headers):
         uri = req.uri
