@@ -74,6 +74,7 @@ def decoder(data):
     headers = dict()
 
     request_parts.pop() #Gets rid of the last element which is just a empty string
+    
     for header in request_parts:
         header_parts = header.split(": ")
         headers[header_parts[0]] = header_parts[1]

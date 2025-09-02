@@ -15,4 +15,31 @@ h1 {
 
 #link-container > a{
     padding: 25px 50px;
+
+}
+
+#para-box{
+  width: 50%;
+  position: relative;
+  left: 25%;
+}
+
+#para {
+    font-size: 20px;
+}
+
+#name {
+    font-size: 35px;
+    animation-name: name-color;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes name-color {
+    0% {color: red}
+    20% {color: green}
+    40% {color: purple}
+    60% {color: yellow}
+    80% {color: aquamarine}
+    100% {color: red}
 }
