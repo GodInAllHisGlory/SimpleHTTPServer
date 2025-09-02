@@ -2,13 +2,15 @@ import socket
 from datetime import datetime
 from request import Request
 from response import Response
-from endpoints import index, about, info, not_found
+from endpoints import index, about, info, not_found, experience, projects
 
 endpoint_dict = {
     "/":index,
-    "index":index,
+    "/index":index,
     "/info":info,
-    "/about":about
+    "/about":about,
+    "/experience":experience,
+    "/projects":projects
 }
 
 #Logs important request and response information
@@ -24,6 +26,7 @@ def logging_factory(next):
         
     return logging
 
+#Creates the headers for a response object
 def create_headers_factory(next):
     def create_headers(req):
         headers = {
@@ -35,7 +38,7 @@ def create_headers_factory(next):
         return next(req, headers)
     return create_headers
 
-
+#Gets files that are spefically requested
 def get_static_file_factory(next):
     def get_static_file(req, headers):
         uri = req.uri
@@ -50,6 +53,7 @@ def get_static_file_factory(next):
         return next(req, headers)
     return get_static_file
 
+#Just helps the get_static_file function get the correct header
 def static_response_helper(header, uri):
     static_type = uri.split(".")[1] #Gets the file type
     if static_type == "css":
@@ -119,7 +123,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             response_chain = create_headers_factory(response_chain)
             response_chain = logging_factory(response_chain)
             res = response_chain(request) #Returns a response object
-            
+
             log_chain = logging_factory(encoder)
             res = log_chain(res)
             connection.send(bytes(res, "UTF-8"))

@@ -3,5 +3,16 @@ h1 {
     margin: 25px;
     text-align: center;
     padding: 10px;
-    
+}
+
+#link-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    font-size: 30px;
+}
+
+#link-container > a{
+    padding: 25px 50px;
 }

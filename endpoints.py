@@ -17,12 +17,21 @@ def info(headers):
     headers["Location"] = "/about"
     return Response("HTTP/1.1", 301, "Moved Permanently", headers, msg)
 
+def experience(headers):
+    response_body = open("template/experience.html").read()
+    headers = set_length(headers,response_body)
+    headers = set_mime_type(headers)
+    return Response("HTTP/1.1", 200, "Ok", headers, response_body)
+
+def projects(headers):
+    response_body = open("template/projects.html").read()
+    headers = set_length(headers,response_body)
+    headers = set_mime_type(headers)
+    return Response("HTTP/1.1", 200, "Ok", headers, response_body)
+
 def not_found(headers):
     response_body = "404 File Not Found :("
     return Response("HTTP/1.1", 404, "Not Found", headers, response_body)
-
-# def static(headers, body):
-#     return Response("HTTP/1.1", 200, "Ok", headers, body)
 
 def set_length(headers, body):
     headers["Content-Length"] = len(body)
