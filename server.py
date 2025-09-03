@@ -17,9 +17,11 @@ endpoint_dict = {
 def logging_factory(next):
     def logging(protocol): 
         if isinstance(protocol, Request): 
+            print("Request Received:")
             print(protocol.method)
             print(protocol.uri)
         else:
+            print("Response Sent:")
             print(protocol.code)
             print(protocol.reason)
         return next(protocol)
@@ -33,7 +35,6 @@ def create_headers_factory(next):
         "Connection": "close",
         "Cache-Control": "max-age=20",
         "Server": "Really Cool Server",
-        "Content-Type":"text/html",
         "Date": datetime.now().strftime('%c')
     }
         return next(req, headers)

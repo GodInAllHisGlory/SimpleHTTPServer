@@ -32,3 +32,7 @@ def not_found(headers):
 def set_length(headers, body):
     headers["Content-Length"] = len(body)
     return headers
+
+def set_mime(headers):
+    headers["Content-Type"] = "text/html"
+    return headers
