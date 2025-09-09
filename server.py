@@ -15,16 +15,16 @@ endpoint_dict = {
 
 #Logs important request and response information
 def logging_factory(next):
-    def logging(protocol): 
-        if isinstance(protocol, Request): 
-            print("Request Received:")
-            print(protocol.method)
-            print(protocol.uri)
-        else:
-            print("Response Sent:")
-            print(protocol.code)
-            print(protocol.reason)
-        return next(protocol)
+    def logging(req):  
+        print("Request Received:")
+        print(req.method)
+        print(req.uri)
+
+        res = next(req)
+        print("Response Sent:")
+        print(res.code)
+        print(res.reason)
+        return res
         
     return logging
 
@@ -126,8 +126,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             response_chain = create_headers_factory(response_chain)
             response_chain = logging_factory(response_chain)
             res = response_chain(request) #Returns a response object
+            res = encoder(res)
 
-            log_chain = logging_factory(encoder)
-            res = log_chain(res)
+            # log_chain = logging_factory(encoder)
+            # res = log_chain(res)
             connection.send(bytes(res, "UTF-8"))
 
